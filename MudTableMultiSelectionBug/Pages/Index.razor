@@ -1,0 +1,92 @@
+﻿@page "/"
+@inject IDialogService _dialogService
+
+<PageTitle>Index</PageTitle>
+
+<MudElement Class="my-4">
+    <MudText>Steps to reproduce:</MudText>
+    <MudTimeline TimelineAlign="TimelineAlign.Start" TimelinePosition="TimelinePosition.Left">
+        <MudTimelineItem>
+            <MudText>Select one or more items</MudText>
+        </MudTimelineItem>
+        <MudTimelineItem>
+            <MudText>Use the "search by" input and write the name of an unselected item. Then press enter.</MudText>
+        </MudTimelineItem>
+        <MudTimelineItem>
+            <MudText>The previous items are not selected anymore.</MudText>
+        </MudTimelineItem>
+    </MudTimeline>
+</MudElement>
+
+<MudGrid Class="my-4">
+    <MudItem xs="12" sm="4">
+        <MudTextField @bind-Value="_searchString" Label="Search by" Placeholder="Name" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" />
+    </MudItem>
+</MudGrid>
+
+<MudTable T="PersonDto" Items="_people"
+          @bind-SelectedItems="_selectedPeople" Filter="new Func<PersonDto,bool>(FilterPeople)"
+          MultiSelection="true" Hover="true" Dense="true" Class="my-4 cursor-pointer"
+          Height="580px" FixedHeader="true" RowsPerPage="12">
+    <ToolBarContent>
+        <MudText Inline="true" Typo="Typo.h6" Class="my-1">People</MudText>
+        <MudSpacer />
+        @if (_selectedPeople.Count > 0)
+        {
+            <MudText Class="me-4">Selected items count: @_selectedPeople.Count</MudText>
+            <div>
+                <MudButton OnClick="() => { _selectedPeople = new(); }" StartIcon="@Icons.Filled.Clear" Variant="Variant.Filled" Class="me-2">
+                    Clear
+                </MudButton>
+                <MudButton OnClick="ShowSelectedPeople" StartIcon="@Icons.Filled.DateRange" Variant="Variant.Filled" Color="Color.Primary">
+                    Show selected people
+                </MudButton>
+            </div>
+        }
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+    </HeaderContent>
+    <GroupHeaderTemplate>
+        <MudTh colspan="10">@($"{context.GroupName}: {context.Key} ({context.Items.Count()})")</MudTh>
+    </GroupHeaderTemplate>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager HideRowsPerPage="true"  />
+    </PagerContent>
+</MudTable>
+
+    @code {
+
+    private List<PersonDto> _people = new()
+    {
+        new() { Name = "John Doe" },
+        new() { Name = "Martin Garrix" },
+        new() { Name = "Eminem" },
+        new() { Name = "Nicolas Cage" },
+        new() { Name = "Martin Martinez" },
+        new() { Name = "Rodrigo Rodriguez" },
+        new() { Name = "Out of ideas" },
+        new() { Name = "Blabla" },
+        new() { Name = "Name" },
+        new() { Name = "Another Name" },
+        new() { Name = "Keanu Reeves" },
+        new() { Name = "Messi" },
+    };
+    private string _searchString = "";
+    private HashSet<PersonDto> _selectedPeople = new();
+
+    private bool FilterPeople(PersonDto person) =>
+        string.IsNullOrWhiteSpace(_searchString) ||
+        person.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+
+    private async Task ShowSelectedPeople()
+    {
+        var peopleSelected = _selectedPeople.Select(x => x.Name + ", ");
+        await _dialogService.ShowMessageBox("People selected", "");
+    }
+
+}
